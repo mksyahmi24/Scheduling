@@ -99,21 +99,20 @@ if uploaded_file is not None:
             random.shuffle(initial_schedule)  # Randomize initial schedule
             best_schedule = genetic_algorithm(initial_schedule, crossover_rate=CO_R, mutation_rate=MUT_R)
 
-            # Create a DataFrame for the schedule
             # Ensure the schedule length matches the time slots
-        if len(best_schedule) != len(all_time_slots):
-            st.error("The length of the schedule does not match the number of time slots.")
+            if len(best_schedule) != len(all_time_slots):
+                st.error("The length of the schedule does not match the number of time slots.")
             else:
-            # Create a DataFrame for the schedule
-            schedule_df = pd.DataFrame({
-            "Time Slot": [f"{hour:02d}:00" for hour in all_time_slots],
-            "Program": best_schedule
-})
+                # Create a DataFrame for the schedule
+                schedule_df = pd.DataFrame({
+                    "Time Slot": [f"{hour:02d}:00" for hour in all_time_slots],
+                    "Program": best_schedule
+                })
 
-            # Display the final schedule as a table
-            st.write("Optimal TV Schedule:")
-            st.table(schedule_df)
+                # Display the final schedule as a table
+                st.write("Optimal TV Schedule:")
+                st.table(schedule_df)
 
-            # Display the total fitness (ratings)
-            total_ratings = fitness_function(best_schedule)
-            st.write(f"Total Ratings: {total_ratings}")
+                # Display the total fitness (ratings)
+                total_ratings = fitness_function(best_schedule)
+                st.write(f"Total Ratings: {total_ratings}")
