@@ -19,6 +19,20 @@ def read_csv_to_dict(file):
         program_ratings[program] = ratings
     return program_ratings
 
+# Crossover operation
+def crossover(schedule1, schedule2):
+    crossover_point = random.randint(1, len(schedule1) - 2)
+    child1 = schedule1[:crossover_point] + schedule2[crossover_point:]
+    child2 = schedule2[:crossover_point] + schedule1[crossover_point:]
+    return child1, child2
+
+# Mutation operation
+def mutate(schedule, all_programs):
+    mutation_point = random.randint(0, len(schedule) - 1)
+    new_program = random.choice(all_programs)
+    schedule[mutation_point] = new_program
+    return schedule
+
 # Streamlit input for file upload
 uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
 if uploaded_file is not None:
@@ -43,20 +57,6 @@ if uploaded_file is not None:
             total_rating += program_ratings_dict[program][time_slot]
         return total_rating
 
-    # Crossover operation
-    def crossover(schedule1, schedule2):
-        crossover_point = random.randint(1, len(schedule1) - 2)
-        child1 = schedule1[:crossover_point] + schedule2[crossover_point:]
-        child2 = schedule2[:crossover_point] + schedule1[crossover_point:]
-        return child1, child2
-
-    # Mutation operation
-    def mutate(schedule):
-        mutation_point = random.randint(0, len(schedule) - 1)
-        new_program = random.choice(all_programs)
-        schedule[mutation_point] = new_program
-        return schedule
-
     # Genetic algorithm
     def genetic_algorithm(initial_schedule, generations=GEN, population_size=POP, crossover_rate=CO_R, mutation_rate=MUT_R, elitism_size=EL_S):
         population = [initial_schedule]
@@ -78,9 +78,9 @@ if uploaded_file is not None:
                     child1, child2 = parent1.copy(), parent2.copy()
 
                 if random.random() < mutation_rate:
-                    child1 = mutate(child1)
+                    child1 = mutate(child1, all_programs)
                 if random.random() < mutation_rate:
-                    child2 = mutate(child2)
+                    child2 = mutate(child2, all_programs)
 
                 new_population.extend([child1, child2])
 
