@@ -99,10 +99,15 @@ if uploaded_file is not None:
             random.shuffle(initial_schedule)  # Randomize initial schedule
             best_schedule = genetic_algorithm(initial_schedule, crossover_rate=CO_R, mutation_rate=MUT_R)
 
-            # Display the final schedule
+            # Create a DataFrame for the schedule
+            schedule_df = pd.DataFrame({
+                "Time Slot": [f"{hour:02d}:00" for hour in all_time_slots],
+                "Program": best_schedule
+            })
+
+            # Display the final schedule as a table
             st.write("Optimal TV Schedule:")
-            for time_slot, program in enumerate(best_schedule):
-                st.write(f"Time Slot {all_time_slots[time_slot]:02d}:00 - Program {program}")
+            st.table(schedule_df)
 
             # Display the total fitness (ratings)
             total_ratings = fitness_function(best_schedule)
