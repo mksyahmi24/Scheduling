@@ -33,6 +33,16 @@ def mutate(schedule, all_programs):
     schedule[mutation_point] = new_program
     return schedule
 
+# Ensure schedule matches the number of time slots
+def validate_schedule_length(schedule, time_slots, all_programs):
+    if len(schedule) < len(time_slots):
+        # Add random programs if the schedule is too short
+        schedule.extend(random.choices(all_programs, k=len(time_slots) - len(schedule)))
+    elif len(schedule) > len(time_slots):
+        # Trim the schedule if it's too long
+        schedule = schedule[:len(time_slots)]
+    return schedule
+
 # Streamlit input for file upload
 uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
 if uploaded_file is not None:
@@ -59,11 +69,11 @@ if uploaded_file is not None:
 
     # Genetic algorithm
     def genetic_algorithm(initial_schedule, generations=GEN, population_size=POP, crossover_rate=CO_R, mutation_rate=MUT_R, elitism_size=EL_S):
-        population = [initial_schedule]
+        population = [validate_schedule_length(initial_schedule.copy(), all_time_slots, all_programs)]
         for _ in range(population_size - 1):
             random_schedule = initial_schedule.copy()
             random.shuffle(random_schedule)
-            population.append(random_schedule)
+            population.append(validate_schedule_length(random_schedule, all_time_slots, all_programs))
 
         for generation in range(generations):
             new_population = []
@@ -82,7 +92,10 @@ if uploaded_file is not None:
                 if random.random() < mutation_rate:
                     child2 = mutate(child2, all_programs)
 
-                new_population.extend([child1, child2])
+                new_population.extend([
+                    validate_schedule_length(child1, all_time_slots, all_programs),
+                    validate_schedule_length(child2, all_time_slots, all_programs)
+                ])
 
             population = new_population
 
@@ -100,19 +113,18 @@ if uploaded_file is not None:
             best_schedule = genetic_algorithm(initial_schedule, crossover_rate=CO_R, mutation_rate=MUT_R)
 
             # Ensure the schedule length matches the time slots
-            if len(best_schedule) != len(all_time_slots):
-                st.error("The length of the schedule does not match the number of time slots.")
-            else:
-                # Create a DataFrame for the schedule
-                schedule_df = pd.DataFrame({
-                    "Time Slot": [f"{hour:02d}:00" for hour in all_time_slots],
-                    "Program": best_schedule
-                })
+            best_schedule = validate_schedule_length(best_schedule, all_time_slots, all_programs)
 
-                # Display the final schedule as a table
-                st.write("Optimal TV Schedule:")
-                st.table(schedule_df)
+            # Create a DataFrame for the schedule
+            schedule_df = pd.DataFrame({
+                "Time Slot": [f"{hour:02d}:00" for hour in all_time_slots],
+                "Program": best_schedule
+            })
 
-                # Display the total fitness (ratings)
-                total_ratings = fitness_function(best_schedule)
-                st.write(f"Total Ratings: {total_ratings}")
+            # Display the final schedule as a table
+            st.write("Optimal TV Schedule:")
+            st.table(schedule_df)
+
+            # Display the total fitness (ratings)
+            total_ratings = fitness_function(best_schedule)
+            st.write(f"Total Ratings: {total_ratings}")
